@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=no">
+  <style>
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3000px;
+    height: 3000px;
+    transform: translate(-50%, -50%);
+    background-image: url(http://pic37.nipic.com/20140116/7180085_232215129000_2.jpg);
+  }
+  
+  .mark_wrap{
+  	position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    transition: all .3s;
+  }
+
+  .mark_wrap.hide {
+    height: 0;
+    overflow: hidden;
+  }
+  
+  .mark,
+  .start {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: all .3s;
+  }
+
+
+  
+  .mark {
+    background-color: rgba(0, 0, 0, .7);
+    filter: url(blur.svg#blur);
+    -webkit-filter: blur(25px);
+    filter: blur(25px);
+    filter: progid: DXImageTransform.Microsoft.Blur(PixelRadius=10, MakeShadow=false);
+  }
+  
+  .mark img {
+    width: 150%;
+    height: 110%;
+    margin-left: -50px;
+    margin-top: -50px;
+  }
+  
+  .start_btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    outline: none;
+    border: none;
+    color: #fff;
+    background: #2c3038;
+    padding: 10px 20px;
+    letterl-spacing: 6px;
+    letter-spacing: 5px;
+    border-radius: 10p;
+    box-shadow: 8px 6px 12px 0px #020914;
+  }
+  </style>
+  <title>奔跑吧前端er</title>
+</head>
+
+<body>
+  <canvas id="canvas" width="3000" height="3000">
+    你的浏览器还不支持canvas
+  </canvas>
+  <div class="mark_wrap">
+    <div class="mark">
+      <img src="http://pic37.nipic.com/20140116/7180085_232215129000_2.jpg" alt="">
+    </div>
+    <div class="start">
+      <button class="start_btn">开始游戏</button>
+    </div>
+  </div>
+  <script src="./index.js"></script>
+</body>
+
+</html>
