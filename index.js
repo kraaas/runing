@@ -3,13 +3,13 @@
     name: '1',
     color: '#2ecc98',
     path: [{
-      direct: 'up',
+      direct: 'top',
       distance: '200'
     }, {
       direct: 'right',
       distance: '150'
     }, {
-      direct: 'up',
+      direct: 'top',
       distance: '200'
     }]
   }, {
@@ -19,7 +19,7 @@
       direct: 'left',
       distance: '200'
     }, {
-      direct: 'up',
+      direct: 'top',
       distance: '220'
     }]
   }, {
@@ -60,20 +60,25 @@
 
   var MW = 3000
   var MH = 3000
+  var MAN_W = 30
+  var MAN_W_HALF = MAN_W / 2
   var CIRCLE_W = 60
   var RECT_W = 50
   var RECT_W_HALF = RECT_W / 2
-  var position = {
-    x: MW / 2,
-    y: MH / 2 + 200
-  }
+  var OFFSET_Y = 0
+  var CLIENT_H = document.documentElement.clientHeight
+  var CLIENT_W = document.documentElement.clientWidth
 
   function Game(mapData) {
-    this.canvas = new Canvas(document.querySelector('#canvas'))
+    this.$target = document.querySelector('#canvas')
+    this.canvas = new Canvas(this.$target)
+    this.$startBtn = document.querySelector('.start_btn')
+    this.$markWrap = document.querySelector('.mark_wrap')
     this.mapData = mapData
+    this.bit = 0
     this.position = {
       x: MW / 2,
-      y: MH / 2 + 200
+      y: MH / 2 + OFFSET_Y
     }
     this.init()
   }
@@ -81,11 +86,89 @@
   Game.prototype = {
     constructor: Game,
     init: function() {
+      this.$target.style.top = (CLIENT_H / 2) + 'px'
+      this.$target.style.left = CLIENT_W / 2 + 'px'
       this.drawMap()
+      this.bindEvent()
+      this.createMan()
+      // this.start()
+    },
+    start: function() {
+      var pathes = mapData.map(function(map, index) {
+        return map.path
+      }).reduce(function(prev, next) {
+        return prev.concat(next)
+      })
+      this.pathes = pathes
+      this.walk()
+    },
+    walk: function(bit) {
+      bit = bit || 0
+      if (bit >= this.pathes.length) return
+      var path = this.pathes[bit]
+      var direct = path.direct
+      var distance = path.distance
+      this.moveTo(direct, distance)
+    },
+    moveTo: function(direct, distance, speed) {
+      var _this = this
+      var isRight = direct == 'right'
+      direct = isRight ? 'left' : direct
+      var current = parseInt(this.$target.style[direct])
+      var step = isRight ? -2 : 2
+      var count = 0
+
+      // clearInterval(this.timer)
+      // this.timer = setInterval((function() {
+      //   _this.now = parseInt(_this.$man.style[direct])
+      //   if ((isRight && _this.now < total) || (!isRight && _this.now >= total)) {
+      //     _this.$man.style[direct] = (_this.now + step) + 'px'
+      //   } else {
+      //     alert('over')
+      //   }
+      // }).bind(this), 0)
+      if (this.timer) {
+        cancelAnimationFrame(this.timer)
+      }
+      go()
+
+      function go() {
+        _this.now = parseInt(_this.$target.style[direct])
+          // if ((isRight && _this.now < total) || (!isRight && _this.now >= total)) {
+          // _this.$man.style[direct] = (_this.now + step) + 'px'
+        if (count <= distance) {
+          _this.$target.style[direct] = (_this.now + step) + 'px'
+          count += step
+          _this.timer = requestAnimationFrame(go)
+        } else {
+          alert('over')
+          cancelAnimationFrame(_this.timer)
+        }
+      }
+    },
+    updateMapPosition: function() {},
+    bindEvent: function() {
+      this.$startBtn.addEventListener('click', (function(e) {
+        this.$markWrap.classList.add('hide')
+      }).bind(this), false)
+
+      document.addEventListener('click', (function(e) {
+        this.walk(++this.bit)
+      }).bind(this), false)
+    },
+    createMan: function() {
+
+      var $man = document.createElement('div')
+      this.$man = $man
+      $man.classList.add('man')
+      $man.style.top = (CLIENT_H / 2 + OFFSET_Y) + 'px'
+      $man.style.left = CLIENT_W / 2 + 'px'
+
+      document.body.appendChild($man)
     },
     updatePosition(x, y) {
-    	this.position.x = x
-    	this.position.y = y
+      this.position.x = x
+      this.position.y = y
     },
     drawMap: function() {
       var prevDirect = ''
@@ -98,15 +181,15 @@
       this.canvas.end()
     },
     drawRect: function(pathes, color) {
-    	var x = this.position.x,
-    			y = this.position.y
+      var x = this.position.x,
+        y = this.position.y
       var direct, prevDirect, distance, isFirst
       pathes.forEach((function(path, index) {
-      	isFirst = !index
+        isFirst = !index
         direct = path.direct
         distance = +path.distance
         switch (direct) {
-          case 'up':
+          case 'top':
             if (isFirst) {
               x = x - RECT_W_HALF
               y = y - distance
@@ -143,22 +226,15 @@
       this.updatePosition(x, y)
     },
     getCirclePosition: function(prevDirect, isFirst) {
-    	var x = this.position.x,
-    			y = this.position.y
+      var x = this.position.x,
+        y = this.position.y
       if (!isFirst) {
-        switch (prevDirect) {
-          case 'up':
-            x = x + RECT_W_HALF
-            y = y
-            break
-          case 'right':
-            x = x
-            y = y + RECT_W_HALF
-            break
-          case 'left':
-            x = x
-            y = y + RECT_W_HALF
-            break
+        if (prevDirect == 'top') {
+          x = x + RECT_W_HALF
+          y = y
+        } else {
+          x = x
+          y = y + RECT_W_HALF
         }
       }
       this.updatePosition(x, y)
@@ -167,12 +243,5 @@
   }
 
   new Game(mapData)
-
-
-  var $startBtn = document.querySelector('.start_btn')
-  var $markWrap = document.querySelector('.mark_wrap')
-  $startBtn.addEventListener('click', function(e) {
-  	$markWrap.classList.add('hide')
-  }, false)
 
 })()
