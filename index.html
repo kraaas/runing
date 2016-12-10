@@ -31,11 +31,11 @@
     height: 100%;
     width: 100%;
     transition: all .3s;
+    overflow: hidden;
   }
 
   .mark_wrap.hide {
-    height: 0;
-    overflow: hidden;
+    transform: translate3d(0, -100%, 0);
   }
   
   .mark,
@@ -47,8 +47,6 @@
     bottom: 0;
     transition: all .3s;
   }
-
-
   
   .mark {
     background-color: rgba(0, 0, 0, .7);
