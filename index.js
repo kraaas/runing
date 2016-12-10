@@ -90,17 +90,18 @@
       this.$target.style.left = CLIENT_W / 2 + 'px'
       this.drawMap()
       this.bindEvent()
-      this.createMan()
-      // this.start()
     },
     start: function() {
-      var pathes = mapData.map(function(map, index) {
+      this.createMan()
+      this.pathes = this.getPathes()
+      this.walk()
+    },
+    getPathes: function() {
+    	return mapData.map(function(map, index) {
         return map.path
       }).reduce(function(prev, next) {
         return prev.concat(next)
       })
-      this.pathes = pathes
-      this.walk()
     },
     walk: function(bit) {
       bit = bit || 0
@@ -111,34 +112,29 @@
       this.moveTo(direct, distance)
     },
     moveTo: function(direct, distance, speed) {
+    	if (this.timer) {
+        cancelAnimationFrame(this.timer)
+      }
+      if(this.count < this.distance - RECT_W) {
+      	alert('done')
+      	return
+      }
       var _this = this
+      
+      this.distance = distance
       var isRight = direct == 'right'
       direct = isRight ? 'left' : direct
       var current = parseInt(this.$target.style[direct])
       var step = isRight ? -2 : 2
-      var count = 0
-
-      // clearInterval(this.timer)
-      // this.timer = setInterval((function() {
-      //   _this.now = parseInt(_this.$man.style[direct])
-      //   if ((isRight && _this.now < total) || (!isRight && _this.now >= total)) {
-      //     _this.$man.style[direct] = (_this.now + step) + 'px'
-      //   } else {
-      //     alert('over')
-      //   }
-      // }).bind(this), 0)
-      if (this.timer) {
-        cancelAnimationFrame(this.timer)
-      }
+      this.count = 0
+      
       go()
 
       function go() {
         _this.now = parseInt(_this.$target.style[direct])
-          // if ((isRight && _this.now < total) || (!isRight && _this.now >= total)) {
-          // _this.$man.style[direct] = (_this.now + step) + 'px'
-        if (count <= distance) {
+        if (_this.count <= (distance  - RECT_W/2 + MAN_W/2) ) {
           _this.$target.style[direct] = (_this.now + step) + 'px'
-          count += step
+          _this.count += Math.abs(step)
           _this.timer = requestAnimationFrame(go)
         } else {
           alert('over')
@@ -149,7 +145,11 @@
     updateMapPosition: function() {},
     bindEvent: function() {
       this.$startBtn.addEventListener('click', (function(e) {
+      	e.stopPropagation()
         this.$markWrap.classList.add('hide')
+        setTimeout((function() {
+	        this.start()
+        }).bind(this), 300)
       }).bind(this), false)
 
       document.addEventListener('click', (function(e) {
@@ -157,7 +157,6 @@
       }).bind(this), false)
     },
     createMan: function() {
-
       var $man = document.createElement('div')
       this.$man = $man
       $man.classList.add('man')
