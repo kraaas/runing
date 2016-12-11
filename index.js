@@ -3,12 +3,16 @@
     name: '1',
     color: '#2ecc98',
     path: [{
+      leve: 1,
       direct: 'top',
       distance: '200'
     }, {
+      leve: 1,
       direct: 'right',
-      distance: '150'
+      distance: '200'
     }, {
+      leve: 1,
+      last: true,
       direct: 'top',
       distance: '200'
     }]
@@ -16,18 +20,48 @@
     name: '1',
     color: '#23b1bf',
     path: [{
-      direct: 'left',
+      leve: 2,
+      direct: 'top',
       distance: '200'
     }, {
-      direct: 'top',
+      leve: 2,
+      last: true,
+      direct: 'right',
       distance: '220'
     }]
   }, {
     name: '1',
     color: '#da693d',
     path: [{
-      direct: 'up',
-      distance: '100'
+      leve: 3,
+      direct: 'right',
+      distance: '300'
+    },{
+      leve: 3,
+      direct: 'top',
+      distance: '300'
+    },{
+      leve: 3,
+      last: true,
+      direct: 'left',
+      distance: '300'
+    }]
+  },{
+    name: '1',
+    color: '#2ecc98',
+    path: [{
+      leve: 4,
+      direct: 'left',
+      distance: '200'
+    }, {
+      leve: 4,
+      direct: 'top',
+      distance: '400'
+    }, {
+      leve: 4,
+      last: true,
+      direct: 'left',
+      distance: '300'
     }]
   }]
 
@@ -86,69 +120,16 @@
   Game.prototype = {
     constructor: Game,
     init: function() {
-      this.$target.style.top = (CLIENT_H / 2) + 'px'
-      this.$target.style.left = CLIENT_W / 2 + 'px'
+      this.setMapPosition()
       this.drawMap()
       this.bindEvent()
     },
-    start: function() {
-      this.createMan()
-      this.pathes = this.getPathes()
-      this.walk()
-    },
-    getPathes: function() {
-    	return mapData.map(function(map, index) {
-        return map.path
-      }).reduce(function(prev, next) {
-        return prev.concat(next)
-      })
-    },
-    walk: function(bit) {
-      bit = bit || 0
-      if (bit >= this.pathes.length) return
-      var path = this.pathes[bit]
-      var direct = path.direct
-      var distance = path.distance
-      this.moveTo(direct, distance)
-    },
-    moveTo: function(direct, distance, speed) {
-    	if (this.timer) {
-        cancelAnimationFrame(this.timer)
-      }
-      if(this.count < this.distance - RECT_W) {
-      	alert('done')
-      	return
-      }
-      var _this = this
-      
-      this.distance = distance
-      var isRight = direct == 'right'
-      direct = isRight ? 'left' : direct
-      var current = parseInt(this.$target.style[direct])
-      var step = isRight ? -2 : 2
-      this.count = 0
-      
-      go()
-
-      function go() {
-        _this.now = parseInt(_this.$target.style[direct])
-        if (_this.count <= (distance  - RECT_W/2 + MAN_W/2) ) {
-          _this.$target.style[direct] = (_this.now + step) + 'px'
-          _this.count += Math.abs(step)
-          _this.timer = requestAnimationFrame(go)
-        } else {
-          alert('over')
-          cancelAnimationFrame(_this.timer)
-        }
-      }
-    },
-    updateMapPosition: function() {},
     bindEvent: function() {
       this.$startBtn.addEventListener('click', (function(e) {
-      	e.stopPropagation()
+        e.stopPropagation()
         this.$markWrap.classList.add('hide')
         setTimeout((function() {
-	        this.start()
+          this.start()
         }).bind(this), 300)
       }).bind(this), false)
 
@@ -156,13 +137,85 @@
         this.walk(++this.bit)
       }).bind(this), false)
     },
+    setMapPosition: function() {
+      this.$target.style.top = (CLIENT_H / 2) + 'px'
+      this.$target.style.left = CLIENT_W / 2 + 'px'
+    },
+    start: function() {
+      this.createMan()
+      this.pathes = this.getPathes()
+      this.walk()
+    },
+    getPathes: function() {
+      return mapData.map(function(map, index) {
+        return map.path
+      }).reduce(function(prev, next) {
+        return prev.concat(next)
+      })
+    },
+    walk: function(bit) {
+      bit = bit || 0
+      if (bit >= this.pathes.length) {
+        alert('闯关成功！')
+        return
+      }
+      var path = this.pathes[bit]
+      this.moveTo(path)
+    },
+    moveTo: function(path) {
+      var direct = path.direct,
+        distance = path.distance,
+        isLast = path.last,
+        leve = path.leve,
+        isRight = direct == 'right',
+        _this = this,
+        current,
+        step
+      if (this.timer) {
+        cancelAnimationFrame(this.timer)
+      }
+      if (isOver()) {
+        return
+      }
+      this.distance = distance
+      direct = isRight ? 'left' : direct
+      current = parseInt(this.$target.style[direct])
+      step = isRight ? -2*leve : 2*leve
+      this.count = 0
+      go()
+      function go() {
+        _this.now = parseInt(_this.$target.style[direct])
+        if (isContinue()) {
+          _this.$target.style[direct] = (_this.now + step) + 'px'
+          _this.count += Math.abs(step)
+          _this.timer = requestAnimationFrame(go)
+        } else if (isLast) {
+          _this.walk(++_this.bit)
+        } else {
+          alert('over')
+          cancelAnimationFrame(_this.timer)
+        }
+      }
+      function isOver() {
+        if (_this.count < _this.distance - 1.5 * RECT_W) {
+          alert('Game Over!')
+          return true
+        }
+      }
+      function isContinue() {
+        if (isRight) {
+          return _this.count <= (distance - RECT_W)
+        } else {
+          return _this.count <= (distance - MAN_W_HALF)
+        }
+      }
+    },
     createMan: function() {
       var $man = document.createElement('div')
       this.$man = $man
       $man.classList.add('man')
       $man.style.top = (CLIENT_H / 2 + OFFSET_Y) + 'px'
       $man.style.left = CLIENT_W / 2 + 'px'
-
       document.body.appendChild($man)
     },
     updatePosition(x, y) {
