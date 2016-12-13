@@ -108,6 +108,8 @@
     this.canvas = new Canvas(this.$target)
     this.$startBtn = document.querySelector('.start_btn')
     this.$markWrap = document.querySelector('.mark_wrap')
+    this.$clickMusic = document.querySelector('#click-music')
+    this.$overMusic = document.querySelector('#over-music')
     this.mapData = mapData
     this.bit = 0
     this.position = {
@@ -135,6 +137,8 @@
 
       document.addEventListener('click', (function(e) {
         this.walk(++this.bit)
+        this.$clickMusic.pause()
+        this.$clickMusic.play()
       }).bind(this), false)
     },
     setMapPosition: function() {
@@ -192,13 +196,13 @@
         } else if (isLast) {
           _this.walk(++_this.bit)
         } else {
-          alert('over')
+          _this.gameOver()
           cancelAnimationFrame(_this.timer)
         }
       }
       function isOver() {
         if (_this.count < _this.distance - 1.5 * RECT_W) {
-          alert('Game Over!')
+          _this.gameOver()
           return true
         }
       }
@@ -209,6 +213,10 @@
           return _this.count <= (distance - MAN_W_HALF)
         }
       }
+    },
+    gameOver: function() {
+      this.$overMusic.play()
+      alert('Game Over!')
     },
     createMan: function() {
       var $man = document.createElement('div')
